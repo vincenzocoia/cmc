@@ -9,12 +9,3 @@ The goal of cmc is to ...
 
 Installation
 ------------
-
-You can install the released version of cmc from [CRAN](https://CRAN.R-project.org) with:
-
-``` r
-install.packages("cmc")
-```
-
-Example
--------
