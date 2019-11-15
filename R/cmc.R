@@ -1,23 +1,3 @@
-#' Fit IG copula via MLE or CNQR
-#' @method "nlm" and "optim" for MLE (representing the name of the
-#' numerical optimizer); or "cnqr" for CNQR.
-fit_igcop_mle <- function(u, v, method = "nlm", init=c(2,2), ...) {
-    nllh <- function(cpar) {
-        if (cpar[1] <= 0) return(Inf)
-        if (cpar[2] <= 1.2) return(Inf)
-        -sum(logdigcop(u, v, cpar))
-    }
-    if (method == "nlm") {
-        .nlm <- nlm(nllh, init, ...)
-        return(.nlm$estimate)
-    }
-    if (method == "optim") {
-        .optim <- optim(init, nllh, ...)
-        return(.optim$par)
-    }
-    stop("method must be either 'nlm' or 'optim'.")
-}
-
 #' Fit CMC model via CNQR or MLE
 #'
 #' Provides a raw workhorse for CNQR (cmc_cnqr_raw) or MLE (cmc_mle_raw).
@@ -27,22 +7,24 @@ fit_igcop_mle <- function(u, v, method = "nlm", init=c(2,2), ...) {
 #' @param udat matrix of PIT score data, in the order of response (V),
 #' first predictor (U1), second predictor (U2), linked by V-U1-U2.
 #' @param force_ig TRUE if you want (U1, V) ~ IG copula.
+#' @return Two vines: vine1 is the copula linking (Y, X1), and
+#' vine2 is the copula linking (Y, X2)|X1.
 cmc_mle_raw <- function(udat, force_ig, method, xvine, u2cond) {
     if (force_ig) {
         cparigcop <- fit_igcop_mle(udat[, 2], udat[, 1], method = method)
         cparmat <- xvine$cparmat # as a template
         cparmat[1, 2] <- list(cparigcop)
-        vine1 <- rvine(
+        vine1 <- copsupp::rvine(
             G = matrix(c(1, 2,
                          0, 1), byrow = TRUE, ncol = 2),
             copmat = matrix(c("", "igcop"), nrow = 1),
             cparmat = cparmat
         )
     } else {
-        vine1 <- fitrvine_basic(udat, vbls = 1:2)
+        vine1 <- copsupp::fitrvine_basic(udat, vbls = 1:2)
     }
-    vcond <- pcondrvine(udat, vine1, var = 1, condset = 2)
-    vine2 <- fitrvine_basic(cbind(u2cond, vcond))
+    vcond <- copsupp::pcondrvine(udat, vine1, var = 1, condset = 2)
+    vine2 <- copsupp::fitrvine_basic(cbind(u2cond, vcond))
     list(
         vine1 = vine1,
         vine2 = vine2
@@ -50,8 +32,10 @@ cmc_mle_raw <- function(udat, force_ig, method, xvine, u2cond) {
 }
 
 cmc_cnqr_raw <- function(udat, force_ig, method, xvine, u2cond, sc,
-                         verbose, copspace = NULL) {
-    if (force_ig) {
+						 verbose, copspace = NULL,
+						 families = c("indepcop", "bvncop","bvtcop","mtcj","gum",
+						 			 "frk","joe","bb1", "bskewncop", "bskewncopp")) {
+	if (force_ig) {
         if (is.null(copspace)) {
             copspace <- list("igcop", NULL)
         } else {
@@ -59,16 +43,17 @@ cmc_cnqr_raw <- function(udat, force_ig, method, xvine, u2cond, sc,
         }
     }
     fit <- cnqr_reduced(1:3, dat = udat, sc = sc, basevine = xvine,
-                        copspace = copspace, verbose = verbose)
-    vine1 <- rvine(
-        G       = diag(2),
-        copmat  = makevinemat("", fit$copmat[1,3]),
-        cparmat = makevinemat(NULL, fit$cparmat[1,3])
+                        copspace = copspace, verbose = verbose,
+    					families = families)
+    vine1 <- copsupp::rvine(
+        G       = matrix(ncol = 2, nrow = 2),
+        copmat  = copsupp::makevinemat("", fit$copmat[1,3]),
+        cparmat = copsupp::makevinemat(NULL, fit$cparmat[1,3])
     )
-    vine2 <- rvine(
-        G       = diag(2),
-        copmat  = makevinemat("", fit$copmat[2,3]),
-        cparmat = makevinemat(NULL, fit$cparmat[2,3])
+    vine2 <- copsupp::rvine(
+        G       = matrix(ncol = 2, nrow = 2),
+        copmat  = copsupp::makevinemat("", fit$copmat[2,3]),
+        cparmat = copsupp::makevinemat(NULL, fit$cparmat[2,3])
     )
     list(
         vine1 = vine1,
@@ -99,9 +84,10 @@ cmc_cnqr_raw <- function(udat, force_ig, method, xvine, u2cond, sc,
 #' @param verbose Only works for CNQR. If TRUE, will output the fitting
 #' status of CNQR.
 #' @param copspace Only works for CNQR.
+#' @export
 cmc <- function(ycol, x1col, x2col, data, method = "optim",
                 force_ig = TRUE, marginal = NULL, sc, verbose = FALSE,
-                copspace = NULL) {
+                copspace = NULL, families) {
     if (is.null(marginal)) marginal <- list(
         pdist = as_pdist(identity),
         qdist = as_qdist(identity)
@@ -133,164 +119,6 @@ cmc <- function(ycol, x1col, x2col, data, method = "optim",
                 x2col  = x2col,
                 marginal = marginal)
     if (method == "cnqr") res$scorer <- sc
+    class(res) <- "cmc"
     res
-}
-
-
-
-#' 'augment' only predicts on the training data.
-#'
-#' @param tau Vector of quantile levels to make predictions at
-# augment.cmc <- function(object, newdata = NULL, tau = 0.9) {
-#     if (is.null(newdata)) newdata <- object$data
-#     yhat <- lapply(tau, function(.tau) predict.cmc(object, tau=.tau))
-#     tidyr::unnest(dplyr::tibble(df = list(newdata), .tau = tau, yhat = yhat))
-# }
-
-
-eval.cmc <- function(object, newdata = NULL) {
-    ycol  <- object$ycol
-    x1col <- object$x1col
-    x2col <- object$x2col
-    xvine <- object$xvine
-    if (is.null(newdata)) {
-        newdata <- object$data
-        xdat <- as.matrix(newdata[, c(ycol, x1col, x2col)])
-        udat <- apply(xdat, 2, object$marginal$pdist)
-        u2cond <- object$u2cond
-    } else {
-        xdat <- as.matrix(newdata[, c(ycol, x1col, x2col)])
-        udat <- apply(xdat, 2, object$marginal$pdist)
-        u2cond <- pcondrvine(udat, xvine, var = 3, condset = 2)
-    }
-    u1u2cond <- cbind(udat[, 2], u2cond)
-    list(
-        newdata  = newdata,
-        u1u2cond = u1u2cond
-    )
-}
-
-#' Add structure to a null model
-#'
-#' Converts marginal Unif(0,1) distributions to have modelled distributions.
-#' CURRENTLY ONLY HANDLES PIT SCORES AS VALUES.
-#'
-#' @param from_col Name of column containing the null values. For example,
-#' probabilities (PIT scores) to evaluate the quantile functions at.
-#' @param to_col Name of the column to append the output to. Leave blank if
-#' you want a vector output.
-#' @details If from_col values are numbers, these are interpreted as PIT
-#' scores by applying the quantile function corresponding
-#' to each predictive distribution.
-#' If values are distributions, these are converted in
-#' such a way that the predictive distributions are obtained if the values
-#' are all Unif(0,1) distributions.
-construct.cmc <- function(object, newdata = NULL, from_col, to_col) {
-    ycol  <- object$ycol
-    x1col <- object$x1col
-    x2col <- object$x2col
-    eval <- eval.cmc(object, newdata)
-    newdata  <- eval$newdata
-    u1u2cond <- eval$u1u2cond
-    pits <- newdata[[from_col]]
-    constructed <- cnqr::QYgX(
-        pits, u1u2cond,
-        cops = c(object$vine1$copmat[1, 2],
-                 object$vine2$copmat[1, 2]),
-        cpars = list(object$vine1$cparmat[1, 2][[1]],
-                     object$vine2$cparmat[1, 2][[1]]),
-        QY = identity
-    )
-    if (missing(to_col)) {
-        return(constructed)
-    } else {
-        newdata[[to_col]] <- constructed
-        return(newdata)
-    }
-}
-
-#' @param from_col Name of column containing the quantiles
-#' to evaluate the pdists at.
-decompose.cmc <- function(object, newdata = NULL, from_col, to_col) {
-    ycol  <- object$ycol
-    x1col <- object$x1col
-    x2col <- object$x2col
-    eval <- eval.cmc(object, newdata)
-    newdata  <- eval$newdata
-    u1u2cond <- eval$u1u2cond
-    v <- newdata[[from_col]]
-    decomposed <- cnqr::FYgX(
-        v, u1u2cond,
-        cops = c(object$vine1$copmat[1, 2],
-                 object$vine2$copmat[1, 2]),
-        cpars = list(object$vine1$cparmat[1, 2][[1]],
-                     object$vine2$cparmat[1, 2][[1]]),
-        FY = identity
-    )
-    if (missing(to_col)) {
-        return(decomposed)
-    } else {
-        newdata[[to_col]] <- decomposed
-        return(newdata)
-    }
-}
-
-
-predict.cmc <- function(object, newdata = NULL, what = "pdist", at, to_col) {
-    ycol  <- object$ycol
-    x1col <- object$x1col
-    x2col <- object$x2col
-    eval  <- eval.cmc(object, newdata)
-    u1u2cond <- eval$u1u2cond
-    if (what == "pdist") {
-        funs <- apply(u1u2cond, 1, function(row) {
-            this_u1u2cond <- matrix(row, nrow = 1)
-            as_pdist(function(v) cnqr::FYgX(
-                v, this_u1u2cond,
-                cops = c(object$vine1$copmat[1, 2],
-                         object$vine2$copmat[1, 2]),
-                cpars = list(object$vine1$cparmat[1, 2][[1]],
-                             object$vine2$cparmat[1, 2][[1]]),
-                FY = identity
-            ))
-        })
-    } else if (what == "qdist" | what == "rdist") {
-        funs <- apply(u1u2cond, 1, function(row) {
-            this_u1u2cond <- matrix(row, nrow=1)
-            as_qdist(function(p) cnqr::QYgX(
-                p, this_u1u2cond,
-                cops = c(object$vine1$copmat[1, 2],
-                         object$vine2$copmat[1, 2]),
-                cpars = list(object$vine1$cparmat[1, 2][[1]],
-                             object$vine2$cparmat[1, 2][[1]]),
-                QY = identity
-            )[1, ])
-        })
-        if (what == "rdist") {
-            qdists <- funs
-            funs <- lapply(qdists, function(qdist)
-                as_rdist(function(n) qdist(runif(n)))
-            )
-        }
-    } else {
-        stop("Don't know what to do with '", what,
-             "' as entry of 'what' argument.")
-    }
-    if (missing(at)) {
-        list_output <- funs
-    } else {
-        list_output <- map(funs, function(fun) {
-            res <- tibble(.at  = at,
-                          .fun = fun(at))
-            names(res)[2] <- paste0(".", what)
-            res
-        })
-    }
-    if (missing(to_col)) {
-        return(list_output)
-    } else {
-        newdata <- eval$newdata
-        newdata[[to_col]] <- list_output
-        return(newdata)
-    }
 }

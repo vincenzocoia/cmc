@@ -10,7 +10,18 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Suggests: 
-    testthat
+    testthat (>= 2.1.0)
 RoxygenNote: 6.1.1
 Imports: 
-    stats
+    stats,
+    copsupp,
+    CopulaModel,
+    distplyr,
+    graphics,
+    lattice,
+    Matrix,
+    MASS,
+    mgcv
+Remotes: vincenzocoia/copsupp,
+  vincenzocoia/CopulaModel,
+  vincenzocoia/distplyr

@@ -1,7 +1,8 @@
 #' Reduced version of cnqr::cnqr().
-#' 
+#'
 #' Only difference is that it doesn't try to compute a final score on the
 #' fitted model.
+#' @export
 cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
                  QY=identity, copspace=NULL, refit=FALSE, verbose=FALSE,
                  families = c("indepcop", "bvncop","bvtcop","mtcj","gum",
@@ -10,7 +11,7 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
     if (missing(basevine)) {
         ## basevine was not specified, which means that the predictors (if present)
         ##  are assumed to be independent.
-        basevine <- rvine(matrix(edges[-1], nrow=1))
+        basevine <- copsupp::rvine(matrix(edges[-1], nrow=1))
     }
     if (is.vector(dat) & !is.list(dat)) dat <- matrix(dat)
     if (is.data.frame(dat) | is.matrix(dat)) {
@@ -26,7 +27,7 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
     ytr <- y[[1]]
     if (novaldat) yval <- ytr else yval <- y[[2]]
     if (length(pdist) == 1) pdist <- rep(list(pdist), ncol(dat[[1]]))
-    dat <- lapply(dat, dat2udat, cdf = pdist)
+    dat <- lapply(dat, cnqr::dat2udat, cdf = pdist)
     ## --- Learn about the Quantile Function ---
     ## Is the quantile function the same for each observation? Store the answer
     ##  in `stationary`. Either way, store the training and validation qdist's
@@ -56,7 +57,7 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
         datval <- dattr
         ## (d) Map predictors to independent uniform set.
         if (verbose) cat("Computing independent predictors for training data.\n")
-        uindtr <- pcondseq(dattr, ord=xlab, rv=basevine)
+        uindtr <- copsupp::pcondseq(dattr, ord=xlab, rv=basevine)
         uindval <- uindtr
     } else {  # Both a training and validation set were input.
         ## (c) Define the two training and validation matrices.
@@ -64,14 +65,14 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
         datval <- dat[[2]]
         ## (d) Map predictors to independent uniform set.
         if (verbose) cat("Computing independent predictors for training data.\n")
-        uindtr <- pcondseq(dattr, ord=xlab, rv=basevine)
+        uindtr <- copsupp::pcondseq(dattr, ord=xlab, rv=basevine)
         if (verbose) cat("Computing independent predictors for validation data.\n")
-        uindval <- pcondseq(datval, ord=xlab, rv=basevine)
+        uindval <- copsupp::pcondseq(datval, ord=xlab, rv=basevine)
     }
     vtr <- dattr[, ylab]
     vval <- datval[, ylab]
     ## --- Extract full model space ---
-    res <- augment(basevine, a=ylab)
+    res <- copsupp::augment(basevine, a=ylab)
     d <- ncol(res$G)
     p <- length(xlab) # This is not necessarily the number of predictors in the vine (=d-1).
     ## Fill-in copspace if not done already.
@@ -104,7 +105,7 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
         res_cand <- lapply(copspace[[i]], function(cop){
             if (verbose) cat(paste0("Fitting copula '", cop, "'.\n"))
             ## Get initial parameter estimates, and select copula reflection/permutation.
-            init <- cpar_init(ucondtr, vcondtr, cop)
+            init <- cnqr::cpar_init(ucondtr, vcondtr, cop)
             ## Let's just use the copula family that comes out of cpar_init(),
             ##  which may be different than the requested family (due to a
             ##  restriction of VineCopula's BiCopSelect()).
@@ -112,17 +113,17 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
             cpar <- list(init$cpar)
             ## Get parameter estimates using CNQR on this copula, with the
             ##  training data.
-            cparhat <- cnqr_est(res, a=xlab[i], cop=cop, cpar_init=cpar, sc=sc,
+            cparhat <- cnqr::cnqr_est(res, a=xlab[i], cop=cop, cpar_init=cpar, sc=sc,
                                 y=ytr, uind=this_uindtr, QY=QYtr, verbose=verbose)
             if (verbose) cat(paste0("\nParameter: (", paste(cparhat[[1]], collapse=", "), ")\n"))
             ## Augment running vine with this fit. The result is a candidate model.
-            augment(res, a=xlab[i], cop=cop, cpar=cparhat, col=d)
+            copsupp::augment(res, a=xlab[i], cop=cop, cpar=cparhat, col=d)
         })
         ## Select the best candidate model on the validation set.
         if (verbose) cat("Selecting best copula family for this edge.\n")
         this_uindval <- uindval[, 1:i, drop=FALSE]
-        res <- cnqr_sel(res_cand, sc=sc, y=yval, uind=this_uindval, QY=QYval)
-        chosen_cop <- tail(xylink(res)$cops, 1)
+        res <- cnqr::cnqr_sel(res_cand, sc=sc, y=yval, uind=this_uindval, QY=QYval)
+        chosen_cop <- tail(cnqr::xylink(res)$cops, 1)
         if (verbose) cat(paste0("Selected '", chosen_cop, "' copula.\n"))
     }
     ## --- Refit entire column --- (if asked)
@@ -133,11 +134,11 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
         cops <- res$copmat[seq_len(p), d]
         cpars <- res$cparmat[seq_len(p), d]
         ## Re-start `res` as having no links with the predictors.
-        res <- augment(basevine, a=ylab)
+        res <- copsupp::augment(basevine, a=ylab)
         ## Get parameter estimates using *all* the data:
         if (novaldat) {
             ## There's no validation data. Just use training data.
-            cparhat <- cnqr_est(res, a=xlab, cop=cops, cpar_init=cpars,
+            cparhat <- cnqr::cnqr_est(res, a=xlab, cop=cops, cpar_init=cpars,
                                 sc=sc, y=ytr, uind=uindtr, QY=QYtr, verbose=verbose)
         } else {
             ## There's separate validation data. Combine training and validation
@@ -149,11 +150,11 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
             } else {
                 QYall <- function(tau) rbind(QYtr(tau), QYval(tau))
             }
-            cparhat <- cnqr_est(res, a=xlab, cop=cops, cpar_init=cpars,
+            cparhat <- cnqr::cnqr_est(res, a=xlab, cop=cops, cpar_init=cpars,
                                 sc=sc, y=y, uind=uind, QY=QYall, verbose=verbose)
         }
         ## Bind parameter estimates to the vine.
-        res <- augment(res, a=xlab, cop=cops, cpar=cparhat, col=d)
+        res <- copsupp::augment(res, a=xlab, cop=cops, cpar=cparhat, col=d)
     }
     ## --- Convert vine to `cnqr` object ---
     ## (c) Append items to the vine.
@@ -177,9 +178,9 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
     class(res) <- c("cnqr", "rvine")
     if (length(dat) > 2) {
         if (stationary) {
-            res <- adddat(res, dat[-(1:2)])
+            res <- cnqr::adddat(res, dat[-(1:2)])
         } else {
-            res <- adddat(res, dat[-(1:2)], QY = QY[-(1:2)])
+            res <- cnqr::adddat(res, dat[-(1:2)], QY = QY[-(1:2)])
         }
     }
     return(res)
