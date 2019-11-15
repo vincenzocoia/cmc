@@ -41,7 +41,6 @@
 #' (v <- runif(nrow(dat)))
 #' (y <- QYgX(matrix(v), dat, cops = cops, cpars = cpars, QY = qexp))
 #' FYgX(y, dat, cops, cpars, FY = pexp)  # Same as v.
-#' @import CopulaModel copsupp
 #' @rdname dist_YgX
 #' @export
 QYgX <- function(tau, ucond, cops, cpars, QY = identity) {
