@@ -21,7 +21,7 @@
 #' \code{ucond}, that link (predictor, response) conditional on previous
 #' predictors in the pairing order.
 #' @param cpars List of parameter vectors corresponding to \code{cops}.
-#' @param QY Vectorized (marginal) quantile function of the response.
+#' @param QY,FY Vectorized (marginal) quantile function/cdf of the response.
 #' @return A matrix, with columns being the quantile levels, and rows
 #' corresponding to the observations in \code{ucond}.
 #' @note If copulas are not permutation-symmetric, ensure that the copula
@@ -61,7 +61,7 @@ QYgX <- function(tau, ucond, cops, cpars, QY = identity) {
 	u <- ucond[, d]
 	## Get copula conditional quantile function. Assumes the second variable
 	##  linked is the response.
-	qcond <- getFromNamespace(paste0("qcond", cops[d]), "CopulaModel")
+	qcond <- utils::getFromNamespace(paste0("qcond", cops[d]), "CopulaModel")
 	qcondfit <- function(p) qcond(p, u, cpars[[d]])
 	taunew <- apply(tau, 2, qcondfit)
 	## Remove a data column and evaluate the quantile function at taunew
@@ -69,6 +69,7 @@ QYgX <- function(tau, ucond, cops, cpars, QY = identity) {
 	return(QYgX(taunew, ucondnew, cops, cpars, QY))
 }
 
+#' @param y Vector of values to evaluate the cdf at.
 #' @rdname dist_YgX
 #' @export
 FYgX <- function(y, ucond, cops, cpars, FY = identity) {
@@ -76,7 +77,7 @@ FYgX <- function(y, ucond, cops, cpars, FY = identity) {
 	if (d == 0) {
 		return(FY(y))
 	}
-	pcondcop <- getFromNamespace(paste0("pcond", cops[d]), "CopulaModel")
+	pcondcop <- utils::getFromNamespace(paste0("pcond", cops[d]), "CopulaModel")
 	pcondcop(FYgX(y, ucond[, -d, drop=FALSE], cops, cpars, FY),
 			 ucond[, d],
 			 cpars[[d]])

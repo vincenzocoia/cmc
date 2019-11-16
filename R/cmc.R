@@ -7,6 +7,10 @@
 #' @param udat matrix of PIT score data, in the order of response (V),
 #' first predictor (U1), second predictor (U2), linked by V-U1-U2.
 #' @param force_ig TRUE if you want (U1, V) ~ IG copula.
+#' @param method Passed to \code{fit_igcop_mle}.
+#' @param xvine Copula joining X1 and X2, bundled into a vine object.
+#' @param u2cond Vector of U2|U1.
+#' @rdname cmc_raw
 #' @return Two vines: vine1 is the copula linking (Y, X1), and
 #' vine2 is the copula linking (Y, X2)|X1.
 cmc_mle_raw <- function(udat, force_ig, method, xvine, u2cond) {
@@ -31,10 +35,19 @@ cmc_mle_raw <- function(udat, force_ig, method, xvine, u2cond) {
     )
 }
 
-cmc_cnqr_raw <- function(udat, force_ig, method, xvine, u2cond, sc,
+#' @param verbose Passed to \code{cnqr_reduced}
+#' @param copspace Passed to \code{cnqr_reduced}. \code{force_ig}
+#' takes precedence.
+#' @param sc Scorer, as in the output of \code{cnqr::scorer}
+#' @param families Vector of copula family names acting as a "pool"
+#' to choose from when fitting.
+#' @rdname cmc_raw
+cmc_cnqr_raw <- function(udat, force_ig, xvine, u2cond, sc,
 						 verbose, copspace = NULL,
-						 families = c("indepcop", "bvncop","bvtcop","mtcj","gum",
-						 			 "frk","joe","bb1", "bskewncop", "bskewncopp")) {
+						 families = c("indepcop", "bvncop","bvtcop",
+						 			 "mtcj","gum",
+						 			 "frk","joe","bb1", "bskewncop",
+						 			 "bskewncopp")) {
 	if (force_ig) {
         if (is.null(copspace)) {
             copspace <- list("igcop", NULL)
@@ -70,6 +83,8 @@ cmc_cnqr_raw <- function(udat, force_ig, method, xvine, u2cond, sc,
 #' Limited capability here -- two predictors are assumed to be
 #' lags, and therefore having the same marginals.
 #'
+#' @param ycol,x1col,x2col Character names of the columns.
+#' @param data Data frame of data
 #' @param force_ig Force Y and X1 to have dependence described by an IG copula?
 #' Default is TRUE.
 #' @param marginal Marginal model, assumed to be the same for the response and
@@ -84,25 +99,28 @@ cmc_cnqr_raw <- function(udat, force_ig, method, xvine, u2cond, sc,
 #' @param verbose Only works for CNQR. If TRUE, will output the fitting
 #' status of CNQR.
 #' @param copspace Only works for CNQR.
+#' @param families Vector of copula family names acting as a "pool"
+#' to choose from when fitting.
 #' @export
 cmc <- function(ycol, x1col, x2col, data, method = "optim",
                 force_ig = TRUE, marginal = NULL, sc, verbose = FALSE,
-                copspace = NULL, families) {
+                copspace = NULL,
+				families = c("indepcop", "bvncop","bvtcop","mtcj","gum",
+							 "frk","joe","bb1", "bskewncop", "bskewncopp")) {
     if (is.null(marginal)) marginal <- list(
-        pdist = as_pdist(identity),
-        qdist = as_qdist(identity)
+        pdist = identity,
+        qdist = identity
     )
     pdist <- marginal$pdist
-    udat <- tibble(
+    udat <- as.matrix(data.frame(
         v  = pdist(data[[ycol]]),
         u1 = pdist(data[[x1col]]),
         u2 = pdist(data[[x2col]])
-    ) %>%
-        as.matrix()
-    xvine <- fitrvine_basic(udat, vbls = 2:3)
-    u2cond <- pcondrvine(udat, xvine, var = 3, condset = 2)
+    ))
+    xvine <- copsupp::fitrvine_basic(udat, vbls = 2:3)
+    u2cond <- copsupp::pcondrvine(udat, xvine, var = 3, condset = 2)
     if (method == "cnqr") {
-        fit <- cmc_cnqr_raw(udat = udat, force_ig = force_ig, method = method,
+        fit <- cmc_cnqr_raw(udat = udat, force_ig = force_ig,
                             xvine = xvine, u2cond = u2cond, sc = sc,
                             verbose = verbose, copspace = copspace)
     } else {

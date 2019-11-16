@@ -7,8 +7,15 @@
 fit_igcop_mle(u, v, method = "nlm", init = c(2, 2), ...)
 }
 \arguments{
+\item{u, v}{Vectors of PIT scores}
+
 \item{method}{"nlm" and "optim" for MLE (representing the name of the
 numerical optimizer); or "cnqr" for CNQR.}
+
+\item{init}{Vector of initial copula parameter values for use in
+the numerical optimizer.}
+
+\item{...}{Other arguments to pass to numerical optimizer}
 }
 \description{
 Fit IG copula via MLE or CNQR

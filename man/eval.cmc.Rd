@@ -2,13 +2,15 @@
 % Please edit documentation in R/cmc-downstream.R
 \name{eval.cmc}
 \alias{eval.cmc}
-\title{'augment' only predicts on the training data.}
+\title{Evaluate cmc model}
 \usage{
 \method{eval}{cmc}(object, newdata = NULL)
 }
 \arguments{
-\item{tau}{Vector of quantile levels to make predictions at}
+\item{object}{A cmc-fitted model.}
+
+\item{newdata}{Data frame to operate on}
 }
 \description{
-'augment' only predicts on the training data.
+Computes things useful for downstream computations.
 }

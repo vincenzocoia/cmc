@@ -5,9 +5,15 @@
 \title{Fit a CMC model}
 \usage{
 cmc(ycol, x1col, x2col, data, method = "optim", force_ig = TRUE,
-  marginal = NULL, sc, verbose = FALSE, copspace = NULL, families)
+  marginal = NULL, sc, verbose = FALSE, copspace = NULL,
+  families = c("indepcop", "bvncop", "bvtcop", "mtcj", "gum", "frk",
+  "joe", "bb1", "bskewncop", "bskewncopp"))
 }
 \arguments{
+\item{ycol, x1col, x2col}{Character names of the columns.}
+
+\item{data}{Data frame of data}
+
 \item{method}{Method of fitting. For MLE (the default), one of
 "optim" or "nlm", depending
 on the numerical optimizer you want to use. If "cnqr",
@@ -27,6 +33,9 @@ really is expecting the output from the composite_dist() function.}
 status of CNQR.}
 
 \item{copspace}{Only works for CNQR.}
+
+\item{families}{Vector of copula family names acting as a "pool"
+to choose from when fitting.}
 }
 \description{
 Intended to be used after a marginal model has been fit with

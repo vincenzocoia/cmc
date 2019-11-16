@@ -16,18 +16,25 @@ construct(object, newdata = NULL, from_col, to_col)
 
 decompose(object, newdata = NULL, from_col, to_col)
 
-\method{predict}{cmc}(object, newdata = NULL, what = "pdist", at,
+\method{predict}{cmc}(object, ..., newdata = NULL, what = "pdist", at,
   to_col)
 }
 \arguments{
+\item{object}{A cmc-fitted model.}
+
+\item{newdata}{Data frame to operate on}
+
 \item{from_col}{Name of column containing the null values. For example,
 probabilities (PIT scores) to evaluate the quantile functions at.}
 
 \item{to_col}{Name of the column to append the output to. Leave blank if
 you want a vector output.}
 
-\item{from_col}{Name of column containing the quantiles
-to evaluate the pdists at.}
+\item{...}{Not used}
+
+\item{what}{What to predict. Could be "pdist", "qdist", or "rdist".}
+
+\item{at}{Vector of values to evaluate the \code{what} function at.}
 }
 \description{
 Converts marginal Unif(0,1) distributions to have modelled distributions.

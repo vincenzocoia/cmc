@@ -2,6 +2,48 @@
 #'
 #' Only difference is that it doesn't try to compute a final score on the
 #' fitted model.
+#' @param edges Integer vector starting with the column number of the response
+#' variable, followed by the column numbers of the predictors to use,
+#' in the order that they are to be linked with the response.
+#' @param dat Data frame or matrix containing the data (columns=variables), or
+#' a list of such data frames. In the latter case, the first data frame is
+#' used for parameter estimation (training data), the second data
+#' frame is used for copula selection (validation data), and all other
+#' data are not used in the fitting procedure, but are included in the
+#' output. \code{dat} may
+#' also be a single vector of response data, in the case you
+#' have no predictors.
+#' @param sc Scoring rule to use for the regression, as in the output
+#' of \code{cnqr::scorer}.
+#' @param basevine Object of type \code{'rvine'} containing
+#' the predictors, and not the response. If left blank, the predictors are
+#' assumed to be independent.
+#' @param pdist List of vectorized distribution functions of the data, where
+#' the entries correspond respectively to the columns in the data frames in
+#' \code{dat}. Or, if the distribution functions are all the same, \code{cdf}
+#' can be that single function. You can ignore this argument if you don't
+#' include any predictors in \code{edges}.
+#' @param copspace List with vector entries of the copula families to try fitting
+#' for each edge. \code{NULL} entries will be replaced with all copula families
+#' in \code{families}. Or, leave the argument as \code{NULL} to fit all families in
+#' \code{families} for all edges.
+#' @param QY Quantile function of the response, which accepts a
+#' vector of values (quantile levels) in (0,1). It should return
+#' quantiles, either in the form of
+#' a vector corresponding to the input,
+#' or in the form of a matrix with columns corresponding to the inputted
+#' quantile levels and rows corresponding to the observations
+#' (thus allowing for each observation of the response to come from different
+#' distributions).
+#' @param refit After all the copula models have been selected and fit
+#' (this is done sequentially), should the parameters of those copula
+#' families be re-estimated, but this time altogether, using all the data?
+#' \code{TRUE} if so.
+#' @param verbose Logical; should messages be output to indicate what
+#' \code{cnqr} is doing?
+#' @param families Vector of copula families.
+#' For those edges in \code{cop} that don't have copula families
+#' specially selected (i.e. have \code{NULL} entries), these families are used.
 #' @export
 cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
                  QY=identity, copspace=NULL, refit=FALSE, verbose=FALSE,
@@ -123,7 +165,7 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
         if (verbose) cat("Selecting best copula family for this edge.\n")
         this_uindval <- uindval[, 1:i, drop=FALSE]
         res <- cnqr::cnqr_sel(res_cand, sc=sc, y=yval, uind=this_uindval, QY=QYval)
-        chosen_cop <- tail(cnqr::xylink(res)$cops, 1)
+        chosen_cop <- utils::tail(cnqr::xylink(res)$cops, 1)
         if (verbose) cat(paste0("Selected '", chosen_cop, "' copula.\n"))
     }
     ## --- Refit entire column --- (if asked)

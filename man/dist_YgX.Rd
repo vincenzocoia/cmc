@@ -26,7 +26,9 @@ predictors in the pairing order.}
 
 \item{cpars}{List of parameter vectors corresponding to \code{cops}.}
 
-\item{QY}{Vectorized (marginal) quantile function of the response.}
+\item{QY, FY}{Vectorized (marginal) quantile function/cdf of the response.}
+
+\item{y}{Vector of values to evaluate the cdf at.}
 }
 \value{
 A matrix, with columns being the quantile levels, and rows

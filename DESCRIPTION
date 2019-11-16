@@ -21,7 +21,11 @@ Imports:
     lattice,
     Matrix,
     MASS,
-    mgcv
+    mgcv,
+    sn,
+    cnqr,
+    utils
 Remotes: vincenzocoia/copsupp,
   vincenzocoia/CopulaModel,
-  vincenzocoia/distplyr
+  vincenzocoia/distplyr,
+  vincenzocoia/cnqr
