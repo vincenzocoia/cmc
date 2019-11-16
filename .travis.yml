@@ -6,6 +6,7 @@ cache: packages
 after_success:
   - Rscript -e 'covr::codecov()'
 
+# Install GSL, solution from https://stackoverflow.com/a/49165163
 addons:
   apt:
     packages:
