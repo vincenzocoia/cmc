@@ -5,3 +5,10 @@ cache: packages
 
 after_success:
   - Rscript -e 'covr::codecov()'
+
+addons:
+  apt:
+    packages:
+    - libcurl4-openssl-dev
+    - libxml2-dev
+    - libgsl0-dev
