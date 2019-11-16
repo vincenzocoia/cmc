@@ -23,9 +23,7 @@ Imports:
     MASS,
     mgcv,
     sn,
-    cnqr,
     utils
 Remotes: vincenzocoia/distplyr,
   vincenzocoia/CopulaModel,
-  vincenzocoia/copsupp,
-  vincenzocoia/cnqr
+  vincenzocoia/copsupp
