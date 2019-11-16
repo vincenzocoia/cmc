@@ -25,7 +25,8 @@ Imports:
     mgcv,
     sn,
     cnqr,
-    utils
+    utils,
+    VineCopula
 Remotes: vincenzocoia/distplyr,
   vincenzocoia/CopulaModel,
   vincenzocoia/copsupp,
