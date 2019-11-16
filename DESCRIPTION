@@ -26,7 +26,7 @@ Imports:
     sn,
     cnqr,
     utils
-Remotes: vincenzocoia/copsupp,
+Remotes: vincenzocoia/distplyr,
   vincenzocoia/CopulaModel,
-  vincenzocoia/distplyr,
+  vincenzocoia/copsupp,
   vincenzocoia/cnqr
