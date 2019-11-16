@@ -24,7 +24,7 @@ also be a single vector of response data, in the case you
 have no predictors.}
 
 \item{sc}{Scoring rule to use for the regression, as in the output
-of \code{cnqr::scorer}.}
+of \code{scorer}.}
 
 \item{basevine}{Object of type \code{'rvine'} containing
 the predictors, and not the response. If left blank, the predictors are

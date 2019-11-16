@@ -14,7 +14,7 @@
 #' also be a single vector of response data, in the case you
 #' have no predictors.
 #' @param sc Scoring rule to use for the regression, as in the output
-#' of \code{cnqr::scorer}.
+#' of \code{scorer}.
 #' @param basevine Object of type \code{'rvine'} containing
 #' the predictors, and not the response. If left blank, the predictors are
 #' assumed to be independent.
@@ -69,7 +69,7 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
     ytr <- y[[1]]
     if (novaldat) yval <- ytr else yval <- y[[2]]
     if (length(pdist) == 1) pdist <- rep(list(pdist), ncol(dat[[1]]))
-    dat <- lapply(dat, cnqr::dat2udat, cdf = pdist)
+    dat <- lapply(dat, dat2udat, cdf = pdist)
     ## --- Learn about the Quantile Function ---
     ## Is the quantile function the same for each observation? Store the answer
     ##  in `stationary`. Either way, store the training and validation qdist's
@@ -147,7 +147,7 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
         res_cand <- lapply(copspace[[i]], function(cop){
             if (verbose) cat(paste0("Fitting copula '", cop, "'.\n"))
             ## Get initial parameter estimates, and select copula reflection/permutation.
-            init <- cnqr::cpar_init(ucondtr, vcondtr, cop)
+            init <- cpar_init(ucondtr, vcondtr, cop)
             ## Let's just use the copula family that comes out of cpar_init(),
             ##  which may be different than the requested family (due to a
             ##  restriction of VineCopula's BiCopSelect()).
@@ -155,7 +155,7 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
             cpar <- list(init$cpar)
             ## Get parameter estimates using CNQR on this copula, with the
             ##  training data.
-            cparhat <- cnqr::cnqr_est(res, a=xlab[i], cop=cop, cpar_init=cpar, sc=sc,
+            cparhat <- cnqr_est(res, a=xlab[i], cop=cop, cpar_init=cpar, sc=sc,
                                 y=ytr, uind=this_uindtr, QY=QYtr, verbose=verbose)
             if (verbose) cat(paste0("\nParameter: (", paste(cparhat[[1]], collapse=", "), ")\n"))
             ## Augment running vine with this fit. The result is a candidate model.
@@ -164,8 +164,8 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
         ## Select the best candidate model on the validation set.
         if (verbose) cat("Selecting best copula family for this edge.\n")
         this_uindval <- uindval[, 1:i, drop=FALSE]
-        res <- cnqr::cnqr_sel(res_cand, sc=sc, y=yval, uind=this_uindval, QY=QYval)
-        chosen_cop <- utils::tail(cnqr::xylink(res)$cops, 1)
+        res <- cnqr_sel(res_cand, sc=sc, y=yval, uind=this_uindval, QY=QYval)
+        chosen_cop <- utils::tail(xylink(res)$cops, 1)
         if (verbose) cat(paste0("Selected '", chosen_cop, "' copula.\n"))
     }
     ## --- Refit entire column --- (if asked)
@@ -180,7 +180,7 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
         ## Get parameter estimates using *all* the data:
         if (novaldat) {
             ## There's no validation data. Just use training data.
-            cparhat <- cnqr::cnqr_est(res, a=xlab, cop=cops, cpar_init=cpars,
+            cparhat <- cnqr_est(res, a=xlab, cop=cops, cpar_init=cpars,
                                 sc=sc, y=ytr, uind=uindtr, QY=QYtr, verbose=verbose)
         } else {
             ## There's separate validation data. Combine training and validation
@@ -192,7 +192,7 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
             } else {
                 QYall <- function(tau) rbind(QYtr(tau), QYval(tau))
             }
-            cparhat <- cnqr::cnqr_est(res, a=xlab, cop=cops, cpar_init=cpars,
+            cparhat <- cnqr_est(res, a=xlab, cop=cops, cpar_init=cpars,
                                 sc=sc, y=y, uind=uind, QY=QYall, verbose=verbose)
         }
         ## Bind parameter estimates to the vine.
@@ -220,9 +220,9 @@ cnqr_reduced <- function(edges, dat, sc, basevine, pdist=identity,
     class(res) <- c("cnqr", "rvine")
     if (length(dat) > 2) {
         if (stationary) {
-            res <- cnqr::adddat(res, dat[-(1:2)])
+            res <- adddat(res, dat[-(1:2)])
         } else {
-            res <- cnqr::adddat(res, dat[-(1:2)], QY = QY[-(1:2)])
+            res <- adddat(res, dat[-(1:2)], QY = QY[-(1:2)])
         }
     }
     return(res)

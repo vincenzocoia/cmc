@@ -44,13 +44,13 @@ test_that("cmc_mle_raw gives something sensible", {
 test_that("cmc_cnqr_raw gives something sensible", {
 	families <- c("bvncop", "bvtcop", "gum")
 	fit <- cmc_cnqr_raw(dat, force_ig = FALSE, xvine = vine_x, u2cond = u2cond,
-						sc = cnqr::scorer(1:9/10), verbose = TRUE,
+						sc = scorer(1:9/10), verbose = TRUE,
 						families = families)
 	# expect_identical(fit$vine1$G, matrix(c(1, 0, 2, 1), ncol = 2))
 	expect_true(fit$vine1$copmat[1,2] %in% c(families, paste0(families, "r")))
 	expect_true(fit$vine2$copmat[1,2] %in% c(families, paste0(families, "r")))
 	fit_norm <- cmc_cnqr_raw(dat, force_ig = FALSE, xvine = vine_x, u2cond = u2cond,
-							 sc = cnqr::scorer(1:9/10), verbose = TRUE,
+							 sc = scorer(1:9/10), verbose = TRUE,
 							 families = "bvncop")
 	expect_gt(fit_norm$vine1$cparmat[1,2][[1]], 0)
 	expect_gt(fit_norm$vine2$cparmat[1,2][[1]], 0)

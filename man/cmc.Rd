@@ -27,7 +27,7 @@ Default is TRUE.}
 predictors. If NULL, assumes variables are already PIT scores; otherwise,
 really is expecting the output from the composite_dist() function.}
 
-\item{sc}{Scorer obtained through cnqr::scorer()}
+\item{sc}{Scorer obtained through scorer()}
 
 \item{verbose}{Only works for CNQR. If TRUE, will output the fitting
 status of CNQR.}

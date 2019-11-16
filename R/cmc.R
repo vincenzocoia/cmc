@@ -38,7 +38,7 @@ cmc_mle_raw <- function(udat, force_ig, method, xvine, u2cond) {
 #' @param verbose Passed to \code{cnqr_reduced}
 #' @param copspace Passed to \code{cnqr_reduced}. \code{force_ig}
 #' takes precedence.
-#' @param sc Scorer, as in the output of \code{cnqr::scorer}
+#' @param sc Scorer, as in the output of \code{scorer}
 #' @param families Vector of copula family names acting as a "pool"
 #' to choose from when fitting.
 #' @rdname cmc_raw
@@ -95,7 +95,7 @@ cmc_cnqr_raw <- function(udat, force_ig, xvine, u2cond, sc,
 #' on the numerical optimizer you want to use. If "cnqr",
 #' fits by CNQR, and you need
 #' to specify the sc argument.
-#' @param sc Scorer obtained through cnqr::scorer()
+#' @param sc Scorer obtained through scorer()
 #' @param verbose Only works for CNQR. If TRUE, will output the fitting
 #' status of CNQR.
 #' @param copspace Only works for CNQR.

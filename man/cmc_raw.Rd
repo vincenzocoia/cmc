@@ -23,7 +23,7 @@ first predictor (U1), second predictor (U2), linked by V-U1-U2.}
 
 \item{u2cond}{Vector of U2|U1.}
 
-\item{sc}{Scorer, as in the output of \code{cnqr::scorer}}
+\item{sc}{Scorer, as in the output of \code{scorer}}
 
 \item{verbose}{Passed to \code{cnqr_reduced}}
 

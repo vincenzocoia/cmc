@@ -8,9 +8,9 @@ vine <- copsupp::rvine(
 udat <- copsupp::rrvine(n, vine)
 
 test_that("cnqr_reduced provides sensible output", {
-	fit_gum <- cnqr_reduced(1:2, udat, sc = cnqr::scorer(1:9/10),
+	fit_gum <- cnqr_reduced(1:2, udat, sc = scorer(1:9/10),
 							 families = "gum")
-	fit_nor <- cnqr_reduced(1:2, udat, sc = cnqr::scorer(1:9/10),
+	fit_nor <- cnqr_reduced(1:2, udat, sc = scorer(1:9/10),
 							 families = "bvncop")
 	expect_true(fit_gum$copmat[1, 2] %in% c("gum", "gumr"))
 	expect_true(fit_nor$copmat[1, 2] %in% "bvncop")
