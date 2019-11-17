@@ -11,7 +11,7 @@ adddat(obj, dat, QY = NULL)
 }
 \arguments{
 \item{obj}{Object of type \code{'cnqr'} that you wish to add
-data to. See \code{\link{cnqr}}.}
+data to. See \code{cnqr::cnqr()}.}
 
 \item{dat}{A list of data frames/matrices (of the raw data) to add
 to \code{obj}. Or, a single data frame/matrix if there's only one.}

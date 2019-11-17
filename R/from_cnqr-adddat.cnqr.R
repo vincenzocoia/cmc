@@ -3,7 +3,7 @@
 #' Add more data to a \code{'cnqr'} object.
 #'
 #' @param obj Object of type \code{'cnqr'} that you wish to add
-#' data to. See \code{\link{cnqr}}.
+#' data to. See \code{cnqr::cnqr()}.
 #' @param dat A list of data frames/matrices (of the raw data) to add
 #' to \code{obj}. Or, a single data frame/matrix if there's only one.
 #' @param QY List of quantile functions of length matching the number
