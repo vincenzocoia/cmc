@@ -13,7 +13,7 @@ cpar_init(u, v, cop)
 }
 \description{
 Obtains initial parameter estimates for a bivariate copula, using MLE.
-This includes the copula reflection. Uses \code{\link{fitbicop_lh}}.
+This includes the copula reflection. Uses \code{fitbicop_lh}.
 If the IG, IGL, or skew normal copula families are requested, then MLE
 is not used (since the copulas are not recognized by the VineCopula pkg).
 Pre-chosen values are output instead, and no reflections are considered.

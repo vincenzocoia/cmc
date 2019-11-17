@@ -8,10 +8,10 @@
 #' @param rv_list list of \code{'rvine'} objects, each of which may only differ
 #' in the last columns of the copula and copula parameter matrices.
 #' @param sc Scoring rule to use for the regression, as in the output
-#' of \code{\link{scorer}}.
+#' of \code{scorer}.
 #' @param y Vector of response data.
 #' @param uind Matrix of independent uniform predictors,
-#' as in the output of \code{\link{pcondseq}}, of the predictors
+#' as in the output of \code{pcondseq}, of the predictors
 #' in the last column of the (common) vine array. If we call "\code{b}" that
 #' column without the first (response) variable, the input matrix should
 #' be the PIT scores of variables
@@ -28,7 +28,7 @@
 #' @note This function assumes that the inputted vines may only differ in the
 #' last column of the copula and copula parameter matrices, and does not
 #' check to see that this is the case.
-#' @seealso \code{\link{cnqr_est}} for CNQR when the model space is a
+#' @seealso \code{cnqr_est} for CNQR when the model space is a
 #' parameter space.
 #' @export
 cnqr_sel <- function(rv_list, sc, y, uind, QY=identity) {

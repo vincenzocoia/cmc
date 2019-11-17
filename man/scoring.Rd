@@ -41,7 +41,7 @@ individual quantile scores by. \code{NULL} for equal weights.}
 appears when observations are removed.}
 
 \item{sc}{The scoring rule to use, as in the output of the function
-\code{\link{scorer}}.}
+\code{scorer}.}
 
 \item{se}{Logical; should an estimate of the standard error of the mean
 estimate be returned as well? \code{TRUE} if so (which also overrides

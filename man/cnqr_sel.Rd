@@ -11,12 +11,12 @@ cnqr_sel(rv_list, sc, y, uind, QY = identity)
 in the last columns of the copula and copula parameter matrices.}
 
 \item{sc}{Scoring rule to use for the regression, as in the output
-of \code{\link{scorer}}.}
+of \code{scorer}.}
 
 \item{y}{Vector of response data.}
 
 \item{uind}{Matrix of independent uniform predictors,
-as in the output of \code{\link{pcondseq}}, of the predictors
+as in the output of \code{pcondseq}, of the predictors
 in the last column of the (common) vine array. If we call "\code{b}" that
 column without the first (response) variable, the input matrix should
 be the PIT scores of variables
@@ -46,6 +46,6 @@ last column of the copula and copula parameter matrices, and does not
 check to see that this is the case.
 }
 \seealso{
-\code{\link{cnqr_est}} for CNQR when the model space is a
+\code{cnqr_est} for CNQR when the model space is a
 parameter space.
 }

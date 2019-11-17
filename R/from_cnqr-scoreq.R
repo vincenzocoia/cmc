@@ -12,7 +12,7 @@
 #' with corresponding realization in \code{y}; columns represent the level/index
 #' of the quantile (corresponding to \code{tau}).
 #' @param sc The scoring rule to use, as in the output of the function
-#' \code{\link{scorer}}.
+#' \code{scorer}.
 #' @param tau Vector of quantile indices of the quantiles.
 #' @param w Vector of weights corresponding to the observations in
 #' \code{yhat}. No need to normalize them. See details to see exactly how these
