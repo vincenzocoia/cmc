@@ -103,7 +103,7 @@ cnqr_est <- function(rv, a, cop, cpar_init, sc, y, uind, QY=identity, verbose=FA
         obj <- function(cparvec)
             score_eval(y, yhat(cparvec), sc=sc)
     }
-    cparvec_hat <- try(rnlm(obj, cparvec_init, cparspace_)$estimate)
+    cparvec_hat <- try(copsupp::rnlm(obj, cparvec_init, cparspace_)$estimate)
     if (inherits(cparvec_hat, "try-error")) {
         warning(paste("Ignoring the error that 'nlm' threw, and just using",
                       "the starting value."))
