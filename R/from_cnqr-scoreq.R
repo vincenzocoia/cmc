@@ -94,7 +94,7 @@ scoreq <- function(y, yhat, tau, w = 1, g = identity, cmb = TRUE,
     score <- sapply(1:length(tau), function(k)
         wn * wtau_comp[k] * asymloss(tau[k], g(y) - g(yhat[, k])))
     if (na_omit) {
-        score2 <- na.omit(score)
+        score2 <- stats::na.omit(score)
         n_rmvd <- nrow(score) - nrow(score2)
         if (n_rmvd > 0) warning(paste("Removed", n_rmvd, "NA observations from score."))
         score <- score2
@@ -121,7 +121,7 @@ score_eval <- function(y, yhat, sc, w=1, cmb=TRUE, na_omit=TRUE, se=FALSE) {
         wtau[k] * asymloss(tau[k], g(y) - g(yhat[, k])))
     if (length(tau) == 1) scoremat <- matrix(scoremat)
     if (na_omit) {
-        scoremat2 <- na.omit(scoremat)
+        scoremat2 <- stats::na.omit(scoremat)
         n_rmvd <- nrow(scoremat) - nrow(scoremat2)
         if (n_rmvd > 0) warning(paste("Removed", n_rmvd, "NA observations from score."))
         scoremat <- scoremat2
@@ -136,7 +136,7 @@ score_eval <- function(y, yhat, sc, w=1, cmb=TRUE, na_omit=TRUE, se=FALSE) {
         wn <- w / wtot
     }
     if (se) {
-        stderr <- sd(scorevec) * sqrt(sum(wn^2))
+        stderr <- stats::sd(scorevec) * sqrt(sum(wn^2))
         res <- c(mean(scorevec), stderr)
         names(res) <- c("average", "se")
         return(res)

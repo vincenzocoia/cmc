@@ -82,7 +82,7 @@ cnqr_est <- function(rv, a, cop, cpar_init, sc, y, uind, QY=identity, verbose=FA
     tau <- sc$tau
     yhat <- function(cparvec) {
         cparvec_all <- c(cparvec_prev, cparvec)
-        cpars_all <- cparvec2cpar(cparvec_all, len_all)
+        cpars_all <- copsupp::cparvec2cpar(cparvec_all, len_all)
         QYgX(tau, uind, cops=cops_all, cpars=cpars_all, QY=QY)
     }
     ## Get parameter space, and adjust starting values is necessary.

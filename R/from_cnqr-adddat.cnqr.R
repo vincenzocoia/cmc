@@ -29,7 +29,7 @@ adddat.cnqr <- function(obj, dat, QY=NULL) {
     info <- xylink(obj)
     tau <- obj$scorer$tau
     cdf <- obj$cdf
-    ycol <- tail(obj$G[1, ], 1)
+    ycol <- utils::tail(obj$G[1, ], 1)
     ## Make dat a list.
     if (is.vector(dat) & !is.list(dat)) dat <- list(matrix(dat))
     if (is.data.frame(dat) | is.matrix(dat)) dat <- list(as.matrix(dat))
@@ -59,7 +59,7 @@ adddat.cnqr <- function(obj, dat, QY=NULL) {
     }
     names(QY) <- names(dat)
     ## Get data, independent predictors, and predictions.
-    uind <- lapply(dat, pcondseq, ord=info$xord, rv=obj)
+    uind <- lapply(dat, copsupp::pcondseq, ord=info$xord, rv=obj)
     yhat <- mapply(function(uind_, QY_) {
         list(QYgX(tau, uind_, cops=info$cops, cpars=info$cpars, QY=QY_))
     }, uind, QY)
