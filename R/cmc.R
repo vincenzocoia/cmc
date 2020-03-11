@@ -1,38 +1,48 @@
 #' Fit CMC model via CNQR or MLE
 #'
-#' Provides a raw workhorse for CNQR (cmc_cnqr_raw) or MLE (cmc_mle_raw).
+#' Provides a raw workhorse for CNQR (compute_cmc_cnqr) or MLE (compute_cmc_mle).
 #' Need to provide it with highly processed input. Intended to be used
-#' as internal functions.
+#' as internal functions. The "_ig" version forces (U1, V) to have an IG copula.
 #'
-#' @param udat matrix of PIT score data, in the order of response (V),
-#' first predictor (U1), second predictor (U2), linked by V-U1-U2.
-#' @param force_ig TRUE if you want (U1, V) ~ IG copula.
-#' @param method Passed to \code{fit_igcop_mle}.
-#' @param xvine Copula joining X1 and X2, bundled into a vine object.
-#' @param u2cond Vector of U2|U1.
-#' @rdname cmc_raw
-#' @return Two vines: vine1 is the copula linking (Y, X1), and
-#' vine2 is the copula linking (Y, X2)|X1.
-cmc_mle_raw <- function(udat, force_ig, method, xvine, u2cond) {
-    if (force_ig) {
-        cparigcop <- fit_igcop_mle(udat[, 2], udat[, 1], method = method)
-        cparmat <- xvine$cparmat # as a template
-        cparmat[1, 2] <- list(cparigcop)
-        vine1 <- copsupp::rvine(
-            G = matrix(c(1, 2,
-                         0, 1), byrow = TRUE, ncol = 2),
-            copmat = matrix(c("", "igcop"), nrow = 1),
-            cparmat = cparmat
-        )
-    } else {
-        vine1 <- copsupp::fitrvine_basic(udat, vbls = 1:2)
-    }
-    vcond <- copsupp::pcondrvine(udat, vine1, var = 1, condset = 2)
-    vine2 <- copsupp::fitrvine_basic(cbind(u2cond, vcond))
+#' @param v Vector of PIT scores of the response
+#' @param u1 Vector of PIT scores of the first predictor to link to the response.
+#' @param u2cond Vector of PIT scores of the second predictor, conditional on
+#' the first.
+#' @rdname compute_cmc_rd
+#' @return Two vines: vine1 is the copula linking (X1, Y), and
+#' vine2 is the copula linking (X2, Y)|X1.
+compute_cmc_mle <- function(v, u1, u2cond) {
+	u1v <- cbind(u1, v)
+	vine1 <- copsupp::fitrvine_basic(u1v)
+    vcond <- copsupp::pcondrvine(u1v, vine1, var = 2, condset = 1)
+    u2vcond <- cbind(u2cond, vcond)
+    vine2 <- copsupp::fitrvine_basic(u2vcond)
     list(
         vine1 = vine1,
         vine2 = vine2
     )
+}
+
+#' @rdname compute_cmc_rd
+#' @param force_ig TRUE if you want
+#' @param xvine Copula joining the 1st and 2nd columns of dmat.
+#' @param method Passed to \code{fit_igcop_mle}.
+compute_cmc_mle_igcop <- function(v, u1, u2cond, method) {
+	cparigcop <- fit_igcop_mle(u1, v, method = method)
+	cparmat <- copsupp::makevinemat(list(cparigcop), zerocol = TRUE)
+	vine1 <- copsupp::rvine(
+		G = matrix(c(1, 2,
+					 0, 1), byrow = TRUE, ncol = 2),
+		copmat = matrix(c("", "igcop"), nrow = 1),
+		cparmat = cparmat
+	)
+	vcond <- copsupp::pcondigcop(v, u1, cparigcop)
+	u2vcond <- cbind(u2cond, vcond)
+	vine2 <- copsupp::fitrvine_basic(u2vcond)
+	list(
+		vine1 = vine1,
+		vine2 = vine2
+	)
 }
 
 #' @param verbose Passed to \code{cnqr_reduced}
@@ -41,8 +51,8 @@ cmc_mle_raw <- function(udat, force_ig, method, xvine, u2cond) {
 #' @param sc Scorer, as in the output of \code{scorer}
 #' @param families Vector of copula family names acting as a "pool"
 #' to choose from when fitting.
-#' @rdname cmc_raw
-cmc_cnqr_raw <- function(udat, force_ig, xvine, u2cond, sc,
+#' @rdname compute_cmc_rd
+compute_cmc_cnqr <- function(udat, force_ig, xvine, u2cond, sc,
 						 verbose, copspace = NULL,
 						 families = c("indepcop", "bvncop","bvtcop",
 						 			 "mtcj","gum",
@@ -87,9 +97,9 @@ cmc_cnqr_raw <- function(udat, force_ig, xvine, u2cond, sc,
 #' @param data Data frame of data
 #' @param force_ig Force Y and X1 to have dependence described by an IG copula?
 #' Default is TRUE.
-#' @param marginal Marginal model, assumed to be the same for the response and
-#' predictors. If NULL, assumes variables are already PIT scores; otherwise,
-#' really is expecting the output from the composite_dist() function.
+#' @param marginal Marginal model of class "dst" from the distplyr package.
+#' Distribution is assumed to be the same for the response and
+#' predictors. If NULL, assumes variables are already PIT scores.
 #' @param method Method of fitting. For MLE (the default), one of
 #' "optim" or "nlm", depending
 #' on the numerical optimizer you want to use. If "cnqr",
@@ -107,11 +117,8 @@ cmc <- function(ycol, x1col, x2col, data, method = "optim",
                 copspace = NULL,
 				families = c("indepcop", "bvncop","bvtcop","mtcj","gum",
 							 "frk","joe","bb1", "bskewncop", "bskewncopp")) {
-    if (is.null(marginal)) marginal <- list(
-        pdist = identity,
-        qdist = identity
-    )
-    pdist <- marginal$pdist
+    if (is.null(marginal)) marginal <- distplyr::dst_unif()
+    pdist <- distplyr::get_cdf(marginal)
     udat <- as.matrix(data.frame(
         v  = pdist(data[[ycol]]),
         u1 = pdist(data[[x1col]]),
@@ -120,11 +127,11 @@ cmc <- function(ycol, x1col, x2col, data, method = "optim",
     xvine <- copsupp::fitrvine_basic(udat, vbls = 2:3)
     u2cond <- copsupp::pcondrvine(udat, xvine, var = 3, condset = 2)
     if (method == "cnqr") {
-        fit <- cmc_cnqr_raw(udat = udat, force_ig = force_ig,
+        fit <- compute_cmc_cnqr(udat = udat, force_ig = force_ig,
                             xvine = xvine, u2cond = u2cond, sc = sc,
                             verbose = verbose, copspace = copspace)
     } else {
-        fit <- cmc_mle_raw(udat = udat, force_ig = force_ig, method = method,
+        fit <- compute_cmc_mle(udat = udat, force_ig = force_ig, method = method,
                            xvine = xvine, u2cond = u2cond)
     }
     res <- list(xvine  = xvine,
