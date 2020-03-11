@@ -6,8 +6,8 @@
 \usage{
 cmc(ycol, x1col, x2col, data, method = "optim", force_ig = TRUE,
   marginal = NULL, sc, verbose = FALSE, copspace = NULL,
-  families = c("indepcop", "bvncop", "bvtcop", "mtcj", "gum", "frk",
-  "joe", "bb1", "bskewncop", "bskewncopp"))
+  omit_na = TRUE, families = c("indepcop", "bvncop", "bvtcop", "mtcj",
+  "gum", "frk", "joe", "bb1", "bskewncop", "bskewncopp"))
 }
 \arguments{
 \item{ycol, x1col, x2col}{Character names of the columns.}
@@ -23,9 +23,9 @@ to specify the sc argument.}
 \item{force_ig}{Force Y and X1 to have dependence described by an IG copula?
 Default is TRUE.}
 
-\item{marginal}{Marginal model, assumed to be the same for the response and
-predictors. If NULL, assumes variables are already PIT scores; otherwise,
-really is expecting the output from the composite_dist() function.}
+\item{marginal}{Marginal model of class "dst" from the distplyr package.
+Distribution is assumed to be the same for the response and
+predictors. If NULL, assumes variables are already PIT scores.}
 
 \item{sc}{Scorer obtained through scorer()}
 
@@ -33,6 +33,9 @@ really is expecting the output from the composite_dist() function.}
 status of CNQR.}
 
 \item{copspace}{Only works for CNQR.}
+
+\item{omit_na}{Omit rows of data where at least one of ycol, x1col,
+and x2col are NA? Currently only TRUE works.}
 
 \item{families}{Vector of copula family names acting as a "pool"
 to choose from when fitting.}

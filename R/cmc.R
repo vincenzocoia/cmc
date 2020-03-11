@@ -109,16 +109,23 @@ compute_cmc_cnqr <- function(udat, force_ig, xvine, u2cond, sc,
 #' @param verbose Only works for CNQR. If TRUE, will output the fitting
 #' status of CNQR.
 #' @param copspace Only works for CNQR.
+#' @param omit_na Omit rows of data where at least one of ycol, x1col,
+#' and x2col are NA? Currently only TRUE works.
 #' @param families Vector of copula family names acting as a "pool"
 #' to choose from when fitting.
 #' @export
 cmc <- function(ycol, x1col, x2col, data, method = "optim",
                 force_ig = TRUE, marginal = NULL, sc, verbose = FALSE,
-                copspace = NULL,
+                copspace = NULL, omit_na = TRUE,
 				families = c("indepcop", "bvncop","bvtcop","mtcj","gum",
 							 "frk","joe","bb1", "bskewncop", "bskewncopp")) {
     if (is.null(marginal)) marginal <- distplyr::dst_unif()
     pdist <- distplyr::get_cdf(marginal)
+    if (omit_na) {
+    	data <- na.omit(data[c(ycol, x1col, x2col)])
+    } else {
+    	stop("Sorry, must omit NA's at this time.")
+    }
     udat <- as.matrix(data.frame(
         v  = pdist(data[[ycol]]),
         u1 = pdist(data[[x1col]]),
