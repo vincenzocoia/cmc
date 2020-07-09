@@ -2,7 +2,7 @@
 #'
 #' Provides a raw workhorse for CNQR (compute_cmc_cnqr) or MLE (compute_cmc_mle).
 #' Need to provide it with highly processed input. Intended to be used
-#' as internal functions. The "_ig" version forces (U1, V) to have an IG copula.
+#' as internal functions. The "_igcop" version forces (U1, V) to have an IG copula.
 #'
 #' @param v Vector of PIT scores of the response
 #' @param u1 Vector of PIT scores of the first predictor to link to the response.
@@ -26,8 +26,8 @@ compute_cmc_mle <- function(v, u1, u2cond) {
 #' @rdname compute_cmc_rd
 #' @param force_ig TRUE if you want
 #' @param xvine Copula joining the 1st and 2nd columns of dmat.
-#' @param method Passed to \code{fit_igcop_mle}.
-compute_cmc_mle_igcop <- function(v, u1, u2cond, method) {
+#' @param method Passed to \code{fit_igcop_mle}. "nlm" or "optim"?
+compute_cmc_mle_igcop <- function(v, u1, u2cond, method = "nlm") {
 	cparigcop <- fit_igcop_mle(u1, v, method = method)
 	cparmat <- copsupp::makevinemat(list(cparigcop), zerocol = TRUE)
 	vine1 <- copsupp::rvine(
